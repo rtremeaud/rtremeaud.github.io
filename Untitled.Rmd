@@ -1,0 +1,124 @@
+---
+title: "COVID19 figures new cases, testing, death"
+subtitle: "Sweden, Italy, France, Switzerland, Germany update 19.09.2020 "
+output:   
+  html_document:
+    keep_md: true
+---
+
+
+```{r setup, message = FALSE, echo = FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(utility)
+library(plotly)
+library(hrbrthemes)
+
+data <- read.csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv", na.strings = "", fileEncoding = "UTF-8-BOM")
+
+data2 <- read.csv("https://covid.ourworldindata.org/data/owid-covid-data.csv", na.strings = "", fileEncoding = "UTF-8-BOM")
+
+Gruppen<-data[ data$countriesAndTerritories=="Switzerland" | data$countriesAndTerritories=="Sweden" |  data$countriesAndTerritories=="France" | data$countriesAndTerritories=="Germany" | data$countriesAndTerritories=="Italy" ,] 
+Gruppen$dateRep <- as.Date.factor(Gruppen$dateRep, format= "%d/%m/%Y")
+colnames(Gruppen)[1]<-"Date"
+colnames(Gruppen)[7]<- "Countries"
+colnames(Gruppen)[12]<-"Cumul_14_days_cases_per_100000"
+dd<-Gruppen[(Gruppen$Date > "2020-06-01" & Gruppen$Date < "2020-09-12"),]
+
+ p <- ggplot(Gruppen,aes(x = Date,y = Cumul_14_days_cases_per_100000,color=Countries))+geom_line() + theme_ipsum() + guides( color = FALSE)
+p1 <- ggplot(Gruppen,aes(x = Date,y = cases,color=Countries))+geom_line() + theme_ipsum() + guides( color = FALSE)
+p2 <- ggplot(Gruppen,aes(x = Date,y = deaths,color=Countries))+geom_line() + theme_ipsum() + guides( color = FALSE)
+p3 <- ggplot(Gruppen,aes(x = Date,y = (Cumul_14_days_cases_per_100000)/2,color=Countries))+geom_line() + theme_ipsum() + guides( color = FALSE)
+
+p<- ggplotly(p, dynamicTicks = TRUE) %>%
+  rangeslider()
+p1<- ggplotly(p1, dynamicTicks = TRUE) %>%
+  rangeslider() 
+p2<- ggplotly(p2, dynamicTicks = TRUE) %>%
+  rangeslider() 
+ 
+```
+***
+
+##### New confirmed cases of COVID-19 (7-day smoothed) per million
+***
+```{r, message = FALSE, echo = FALSE, warning=FALSE,out.width="100%"}
+Gruppen2<-data2[ data2$location=="Switzerland" | data2$location=="France" |data2$location=="Sweden" | data2$location=="Germany" | data2$location=="Italy" ,] 
+Gruppen2$date <- as.Date.factor(Gruppen2$date, format= "%Y-%m-%d")
+dd<-Gruppen2[(Gruppen2$date > "2020-06-01" & Gruppen2$date < "2020-09-12"),]
+
+p3 <- ggplot(dd,aes(x = date,y=new_cases_smoothed_per_million,color=location)) + geom_line () + theme_ipsum() 
+ggplotly(p3, dynamicTicks = TRUE) %>%
+rangeslider() 
+```
+
+##### Cases of COVID-19 
+***
+```{r , message = FALSE, echo = FALSE, warning=FALSE,out.width="100%"}
+p1
+```
+
+##### Death COVID-19 
+***
+```{r, message = FALSE, echo = FALSE, warning=FALSE,out.width="100%"}
+p2
+```
+
+
+##### New deaths attributed to COVID-19 (7-day smoothed)	
+***
+New tests for COVID-19 (7-day smoothed).
+For countries that don't report testing data on a daily basis, we assume that testing changed equally on a daily basis over any periods in which no data was reported. 
+This produces a complete series of daily figures, which is then averaged over a rolling 7-day window
+***
+
+
+```{r, message = FALSE, echo = FALSE, warning=FALSE,out.width="100%"}
+p4 <- ggplot(Gruppen2,aes(x = date,y=new_deaths_smoothed_per_million,color=location)) + geom_line () + theme_ipsum() 
+ggplotly(p4, dynamicTicks = TRUE) %>%
+rangeslider() 
+```
+
+
+##### Tests conducted per new confirmed case of COVID-19
+
+given as a rolling 7-day average (this is the inverse of positive_rate)	
+
+***
+
+```{r, message = FALSE, echo = FALSE, warning=FALSE,out.width="100%"}
+dafortest<-Gruppen2[(Gruppen2$date > "2020-05-01" ),]
+
+p5 <- ggplot(dafortest,aes(x = date,y=tests_per_case,color=location)) + geom_line () + theme_ipsum() 
+ggplotly(p5, dynamicTicks = TRUE) %>%
+rangeslider() 
+```
+
+
+##### New tests
+
+##### New tests for COVID-19 (7-day smoothed). 
+
+***
+For countries that don't report testing data on a daily basis, we assume that testing changed equally on a daily basis over any periods in which no data was reported. This produces a complete series of daily figures, which is then averaged over a rolling 7-day window	
+
+***
+```{r, message = FALSE, echo = FALSE, warning=FALSE,out.width="100%"}
+p5 <- ggplot(Gruppen2,aes(x = date,y=new_tests_smoothed		,color=location)) + geom_line () + theme_ipsum() 
+ggplotly(p5, dynamicTicks = TRUE) %>%
+rangeslider() 
+```
+
+
+
+
+Sources:
+
+***
+
+[opendata ecdc](https://opendata.ecdc.europa.eu/covid19/casedistribution/csv)
+
+[ourworldindata](https://covid.ourworldindata.org/data/owid-covid-data.csv)
+
+[Code book information](https://github.com/owid/covid-19-data/blob/master/public/data/owid-covid-codebook.csv) 
+
+***
